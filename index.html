@@ -31,7 +31,6 @@
 
   body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
 
-  /* TOPBAR */
   .topbar {
     background: var(--surface); border-bottom: 1px solid var(--border);
     padding: 0 1.5rem; height: 56px;
@@ -46,7 +45,6 @@
   }
   .topbar h1 { font-size: 15px; font-weight: 600; }
 
-  /* TABS */
   .tabs {
     display: flex; gap: 2px; background: var(--border);
     border-radius: 10px; padding: 3px;
@@ -59,10 +57,8 @@
   }
   .tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 
-  /* MAIN */
   .main { padding: 1.25rem 1.5rem 2rem; }
 
-  /* STATS */
   .stats-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
   .stat-chip {
     display: flex; align-items: center; gap: 6px; padding: 6px 12px;
@@ -74,7 +70,6 @@
   .dot-out { background: var(--danger); }
   .dot-alert { background: var(--warning); }
 
-  /* KEYS GRID */
   .keys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
   .key-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -99,90 +94,27 @@
   .key-info { font-size: 12px; color: var(--text-soft); margin-bottom: 12px; min-height: 16px; line-height: 1.4; }
   .key-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
 
-  /* HISTÓRICO */
   .historico-filters { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .filter-input {
+  .filter-input, .filter-select {
     padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text);
-    outline: none; flex: 1; min-width: 160px;
+    font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text); outline: none;
   }
-  .filter-input:focus { border-color: var(--accent); }
-  .filter-select {
-    padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text);
-    outline: none; cursor: pointer;
-  }
+  .filter-input { flex: 1; min-width: 160px; }
+  .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+  .filter-select { cursor: pointer; }
   .historico-table {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
   }
-  .table-header {
+  .table-header, .table-row {
     display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr;
-    padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border);
-    font-size: 11px; font-weight: 600; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .table-row {
-    display: grid; grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1fr;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    align-items: center; transition: background 0.1s; font-size: 13px;
-  }
+  .table-header { background: var(--bg); font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .table-row { align-items: center; transition: background 0.1s; font-size: 13px; }
   .table-row:last-child { border-bottom: none; }
   .table-row:hover { background: var(--bg); }
 
-  /* ADMIN */
-  .admin-lock {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 3rem 1rem; text-align: center;
-  }
-  .admin-lock .lock-icon { font-size: 40px; margin-bottom: 1rem; }
-  .admin-lock h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-  .admin-lock p { font-size: 13px; color: var(--text-soft); margin-bottom: 1.25rem; }
-  .admin-lock input {
-    padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: 14px; outline: none; margin-bottom: 10px;
-    width: 100%; max-width: 280px; text-align: center;
-  }
-  .admin-lock input:focus { border-color: var(--accent); }
-  .admin-lock .erro-senha { color: var(--danger); font-size: 12px; margin-top: 4px; display: none; }
-
-  .admin-section { margin-bottom: 2rem; }
-  .admin-section h3 {
-    font-size: 14px; font-weight: 600; margin-bottom: 1rem;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-bottom: 1rem; }
-  .admin-item {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px 14px;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    box-shadow: var(--shadow);
-  }
-  .admin-item span { font-size: 13px; font-weight: 500; flex: 1; }
-  .admin-item .tag-inativo {
-    font-size: 11px; color: var(--text-muted); background: var(--bg);
-    border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px;
-  }
-  .btn-icon {
-    width: 28px; height: 28px; border-radius: 6px; border: none;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0; transition: opacity 0.15s;
-  }
-  .btn-icon:hover { opacity: 0.7; }
-  .btn-icon-danger { background: var(--danger-light); color: var(--danger); }
-  .btn-icon-success { background: var(--success-light); color: var(--success); }
-
-  .add-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .add-row input {
-    flex: 1; min-width: 160px; padding: 9px 12px;
-    border: 1px solid var(--border); border-radius: var(--radius);
-    font-family: inherit; font-size: 13px; outline: none; background: var(--surface);
-  }
-  .add-row input:focus { border-color: var(--accent); }
-  .add-row input.descricao { max-width: 200px; }
-
-  /* BOTÕES */
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     gap: 6px; padding: 10px 16px; border-radius: var(--radius);
@@ -192,48 +124,34 @@
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--accent); color: #fff; width: 100%; }
   .btn-primary:hover { opacity: 0.9; }
-  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; }
-  .btn-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #FECACA; }
-  .btn-success { background: var(--success-light); color: var(--success); border: 1px solid #BBF7D0; }
   .btn-ghost { background: transparent; color: var(--text-soft); border: 1px solid var(--border); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* MODAL */
   .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4); z-index: 100;
-    align-items: center; justify-content: center; padding: 1rem;
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 100; align-items: center; justify-content: center; padding: 1rem;
   }
-  .modal {
-    background: var(--surface); border-radius: 14px; padding: 1.5rem;
-    width: 100%; max-width: 400px; box-shadow: var(--shadow-md);
-  }
+  .modal { background: var(--surface); border-radius: 14px; padding: 1.5rem; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); }
   .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--text-soft); margin-bottom: 1.25rem; line-height: 1.5; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* FIELD */
   .field { margin-bottom: 1rem; }
-  .field label {
-    display: block; font-size: 12px; font-weight: 500; color: var(--text-soft);
-    margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;
-  }
-  .field select, .field textarea, .field input {
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field select, .field textarea {
     width: 100%; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: var(--radius); font-family: inherit; font-size: 14px;
     background: var(--bg); color: var(--text); transition: border-color 0.15s; outline: none;
   }
-  .field select:focus, .field textarea:focus, .field input:focus { border-color: var(--accent); background: #fff; }
+  .field select:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
   .field textarea { resize: vertical; min-height: 72px; }
 
-  /* LOADING / EMPTY */
   .loading { display: flex; align-items: center; gap: 10px; color: var(--text-soft); font-size: 13px; padding: 2rem 0; }
   .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .empty-state { text-align: center; color: var(--text-muted); padding: 3rem 1rem; font-size: 13px; }
   .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
 
-  /* TOAST */
   .toast {
     position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(8px);
     background: var(--text); color: #fff; padding: 10px 18px; border-radius: 99px;
@@ -265,7 +183,6 @@
 <div class="tabs">
   <button class="tab active" onclick="mostrarAba('painel', this)">Painel</button>
   <button class="tab" onclick="mostrarAba('historico', this)">Histórico</button>
-  <button class="tab" onclick="mostrarAba('admin', this)">⚙ Admin</button>
 </div>
 
 <div id="aba-painel" class="main">
@@ -287,43 +204,6 @@
     </select>
   </div>
   <div id="historico-container"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
-</div>
-
-<div id="aba-admin" class="main" style="display:none;">
-  <div id="admin-lock">
-    <div class="admin-lock">
-      <div class="lock-icon">🔒</div>
-      <h3>Área restrita</h3>
-      <p>Digite a senha para acessar as configurações.</p>
-      <input type="password" id="input-senha-admin" placeholder="Senha" onkeydown="if(event.key==='Enter') verificarSenha()">
-      <div class="erro-senha" id="erro-senha">Senha incorreta.</div>
-      <br>
-      <button class="btn btn-primary btn-sm" style="max-width:280px; margin-top:8px;" onclick="verificarSenha()">Entrar</button>
-    </div>
-  </div>
-
-  <div id="admin-content" style="display:none;">
-
-    <div class="admin-section">
-      <h3>🔑 Chaves cadastradas</h3>
-      <div class="admin-grid" id="admin-chaves-lista"></div>
-      <div class="add-row">
-        <input type="text" id="nova-chave-nome" placeholder="Nome da chave (ex: Almoxarifado)">
-        <input type="text" id="nova-chave-desc" class="descricao" placeholder="Descrição (opcional)">
-        <button class="btn btn-success btn-sm" onclick="adicionarChave()">+ Adicionar</button>
-      </div>
-    </div>
-
-    <div class="admin-section">
-      <h3>👤 Funcionários</h3>
-      <div class="admin-grid" id="admin-func-lista"></div>
-      <div class="add-row">
-        <input type="text" id="novo-func-nome" placeholder="Nome completo do funcionário">
-        <button class="btn btn-success btn-sm" onclick="adicionarFuncionario()">+ Adicionar</button>
-      </div>
-    </div>
-
-  </div>
 </div>
 
 <div class="modal-overlay" id="modal-retirada">
@@ -356,27 +236,14 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-remover">
-  <div class="modal">
-    <h3 id="modal-remover-titulo">Confirmar remoção</h3>
-    <p id="modal-remover-desc"></p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="fecharModal('modal-remover')">Cancelar</button>
-      <button class="btn btn-danger" id="btn-confirmar-remover" onclick="confirmarRemocao()">Remover</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
-const SENHA_ADMIN = 'chavesgruponexxus2026';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Lista de funcionários (gerenciada localmente + salva no Supabase via tabela)
 let funcionarios = [
   'Alana Suellen','Alan Lima','Alessandro Macedo','Alessandro Martins','Alisson Rodrigues',
   'Ana Lidia','Ana Lísia Sá','Aquino Dutra','Bruno Oliveira','Cesar Farias',
@@ -393,18 +260,13 @@ let funcionarios = [
 let chavesSelecionada = null;
 let registroSelecionado = null;
 let todosRegistros = [];
-let remocaoPendente = null; // { tipo: 'chave'|'func', id, nome }
-let adminAutenticado = false;
 
-// ── INIT ──
 carregarFuncionariosDB();
 carregarPainel();
 
 async function carregarFuncionariosDB() {
   const { data } = await sb.from('funcionarios').select('nome').order('nome');
-  if (data && data.length > 0) {
-    funcionarios = data.map(f => f.nome);
-  }
+  if (data && data.length > 0) { funcionarios = data.map(f => f.nome); }
   preencherSelectFuncionario();
 }
 
@@ -418,136 +280,13 @@ function preencherSelectFuncionario() {
   });
 }
 
-// ── ABAS ──
 function mostrarAba(aba, btn) {
-  ['painel','historico','admin'].forEach(a => {
-    document.getElementById('aba-' + a).style.display = a === aba ? 'block' : 'none';
-  });
+  ['painel','historico'].forEach(a => document.getElementById('aba-' + a).style.display = a === aba ? 'block' : 'none');
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   if (aba === 'historico') carregarHistorico();
-  if (aba === 'admin' && adminAutenticado) carregarAdmin();
 }
 
-// ── ADMIN AUTH ──
-function verificarSenha() {
-  const val = document.getElementById('input-senha-admin').value;
-  if (val === SENHA_ADMIN) {
-    adminAutenticado = true;
-    document.getElementById('admin-lock').style.display = 'none';
-    document.getElementById('admin-content').style.display = 'block';
-    carregarAdmin();
-  } else {
-    document.getElementById('erro-senha').style.display = 'block';
-    document.getElementById('input-senha-admin').value = '';
-  }
-}
-
-// ── ADMIN: CARREGAR ──
-async function carregarAdmin() {
-  await carregarAdminChaves();
-  await carregarAdminFuncionarios();
-}
-
-async function carregarAdminChaves() {
-  const { data } = await sb.from('chaves').select('*').order('nome');
-  const lista = document.getElementById('admin-chaves-lista');
-  if (!data || data.length === 0) { lista.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhuma chave cadastrada.</p>'; return; }
-
-  lista.innerHTML = data.map(c => `
-    <div class="admin-item">
-      <span>${c.nome}${c.descricao ? `<br><small style="color:var(--text-muted);font-weight:400;">${c.descricao}</small>` : ''}</span>
-      ${!c.ativa ? '<span class="tag-inativo">Inativa</span>' : ''}
-      ${c.ativa
-        ? `<button class="btn-icon btn-icon-danger" title="Desativar" onclick="pedirRemocao('chave','${c.id}','${escapar(c.nome)}')">✕</button>`
-        : `<button class="btn-icon btn-icon-success" title="Reativar" onclick="reativarChave('${c.id}')">↩</button>`
-      }
-    </div>`).join('');
-}
-
-async function carregarAdminFuncionarios() {
-  const lista = document.getElementById('admin-func-lista');
-  if (!funcionarios.length) { lista.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum funcionário cadastrado.</p>'; return; }
-
-  lista.innerHTML = funcionarios.map(nome => `
-    <div class="admin-item">
-      <span>${nome}</span>
-      <button class="btn-icon btn-icon-danger" title="Remover" onclick="pedirRemocao('func',null,'${escapar(nome)}')">✕</button>
-    </div>`).join('');
-}
-
-// ── ADMIN: CHAVE ──
-async function adicionarChave() {
-  const nome = document.getElementById('nova-chave-nome').value.trim();
-  const desc = document.getElementById('nova-chave-desc').value.trim();
-  if (!nome) { mostrarToast('Digite o nome da chave.', 'error'); return; }
-
-  const { error } = await sb.from('chaves').insert({ nome, descricao: desc || null });
-  if (error) { mostrarToast('Erro ao adicionar chave.', 'error'); return; }
-
-  document.getElementById('nova-chave-nome').value = '';
-  document.getElementById('nova-chave-desc').value = '';
-  mostrarToast('Chave adicionada!', 'success');
-  carregarAdminChaves();
-  carregarPainel();
-}
-
-async function reativarChave(id) {
-  await sb.from('chaves').update({ ativa: true }).eq('id', id);
-  mostrarToast('Chave reativada!', 'success');
-  carregarAdminChaves();
-  carregarPainel();
-}
-
-// ── ADMIN: FUNCIONÁRIO ──
-async function adicionarFuncionario() {
-  const nome = document.getElementById('novo-func-nome').value.trim();
-  if (!nome) { mostrarToast('Digite o nome do funcionário.', 'error'); return; }
-  if (funcionarios.includes(nome)) { mostrarToast('Funcionário já existe.', 'error'); return; }
-
-  const { error } = await sb.from('funcionarios').insert({ nome });
-  if (error) { mostrarToast('Erro ao adicionar funcionário.', 'error'); console.error(error); return; }
-
-  funcionarios.push(nome);
-  funcionarios.sort();
-  document.getElementById('novo-func-nome').value = '';
-  preencherSelectFuncionario();
-  mostrarToast('Funcionário adicionado!', 'success');
-  carregarAdminFuncionarios();
-}
-
-// ── MODAL REMOÇÃO ──
-function pedirRemocao(tipo, id, nome) {
-  remocaoPendente = { tipo, id, nome };
-  const isChave = tipo === 'chave';
-  document.getElementById('modal-remover-titulo').textContent = isChave ? 'Desativar chave' : 'Remover funcionário';
-  document.getElementById('modal-remover-desc').textContent = isChave
-    ? `Deseja desativar a chave "${nome}"? O histórico será preservado.`
-    : `Deseja remover "${nome}" da lista? Registros anteriores não serão afetados.`;
-  document.getElementById('modal-remover').style.display = 'flex';
-}
-
-async function confirmarRemocao() {
-  fecharModal('modal-remover');
-  const { tipo, id, nome } = remocaoPendente;
-
-  if (tipo === 'chave') {
-    await sb.from('chaves').update({ ativa: false }).eq('id', id);
-    mostrarToast('Chave desativada.', 'success');
-    carregarAdminChaves();
-    carregarPainel();
-  } else {
-    const { error } = await sb.from('funcionarios').delete().eq('nome', nome);
-    if (error) { mostrarToast('Erro ao remover funcionário.', 'error'); return; }
-    funcionarios = funcionarios.filter(f => f !== nome);
-    preencherSelectFuncionario();
-    mostrarToast('Funcionário removido.', 'success');
-    carregarAdminFuncionarios();
-  }
-  remocaoPendente = null;
-}
-
-// ── PAINEL ──
 async function carregarPainel() {
   const container = document.getElementById('keys-container');
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando chaves...</div>';
@@ -579,9 +318,7 @@ async function carregarPainel() {
   container.innerHTML = `<div class="keys-grid">${cards}</div>`;
 }
 
-function calcularStatus(retirado_em) {
-  return (Date.now() - new Date(retirado_em)) / 36e5 > 8 ? 'alert' : 'out';
-}
+function calcularStatus(retirado_em) { return (Date.now() - new Date(retirado_em)) / 36e5 > 8 ? 'alert' : 'out'; }
 
 function renderCard(chave, reg, status) {
   const statusClass = reg ? (status === 'alert' ? 'status-alert' : 'status-out') : 'status-available';
@@ -602,7 +339,6 @@ function renderCard(chave, reg, status) {
   </div>`;
 }
 
-// ── RETIRADA ──
 function abrirRetirada(chaveId, chaveNome) {
   chavesSelecionada = chaveId;
   document.getElementById('modal-retirada-desc').textContent = `Você está retirando a chave "${chaveNome}". Selecione seu nome abaixo.`;
@@ -625,7 +361,6 @@ async function confirmarRetirada() {
   carregarPainel();
 }
 
-// ── DEVOLUÇÃO ──
 function abrirDevolucao(registroId, chaveNome, nomeUsuario) {
   registroSelecionado = registroId;
   document.getElementById('modal-devolucao-desc').textContent = `Confirma a devolução da chave "${chaveNome}" retirada por ${nomeUsuario}?`;
@@ -640,7 +375,6 @@ async function confirmarDevolucao() {
   carregarPainel();
 }
 
-// ── HISTÓRICO ──
 async function carregarHistorico() {
   const container = document.getElementById('historico-container');
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando histórico...</div>';
@@ -672,7 +406,6 @@ function renderHistorico(registros) {
   container.innerHTML = `<div class="historico-table"><div class="table-header"><div>Chave</div><div>Funcionário</div><div>Retirada</div><div>Devolução</div><div>Status</div></div>${linhas}</div>`;
 }
 
-// ── UTILS ──
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); });
