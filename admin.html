@@ -111,15 +111,85 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.success { background: var(--success); }
   .toast.error { background: var(--danger); }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-md);
+  }
+  .login-icon {
+    width: 48px; height: 48px;
+    background: var(--text);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 22px;
+  }
+  .login-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .login-card p { color: var(--text-soft); font-size: 13px; margin-bottom: 1.75rem; }
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text-soft); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .field input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: inherit; font-size: 14px;
+    background: var(--bg); color: var(--text);
+    transition: border-color 0.15s; outline: none;
+  }
+  .field input:focus { border-color: var(--accent); background: #fff; }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+  .btn-primary:hover { opacity: 0.9; }
+  .error-msg {
+    background: var(--danger-light); color: var(--danger);
+    border: 1px solid #FECACA; border-radius: var(--radius);
+    padding: 10px 12px; font-size: 13px; margin-top: 1rem; display: none;
+  }
+  #app-screen { display: none; }
 </style>
 </head>
 <body>
 
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">⚙</div>
+    <h1>Área Administrativa</h1>
+    <p>Acesso restrito. Entre com suas credenciais de admin.</p>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="login-username" placeholder="ex: usuário@seu-dominio.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary" id="login-btn" onclick="fazerLogin()">Entrar</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<div id="app-screen">
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-icon">⚙</div>
     <h1>Administração de Chaves e Equipe</h1>
   </div>
+  <button class="btn btn-ghost" style="padding:6px 10px; font-size:12px;" onclick="fazerLogout()">Sair</button>
 </div>
 
 <div class="main">
@@ -143,6 +213,17 @@
   </div>
 </div>
 
+</div><div class="modal-overlay" id="modal-remover">
+  <div class="modal">
+    <h3 id="modal-remover-titulo">Confirmar</h3>
+    <p id="modal-remover-desc"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-remover')">Cancelar</button>
+      <button class="btn btn-danger" id="btn-confirmar-remover" onclick="confirmarRemocao()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-remover">
   <div class="modal">
     <h3 id="modal-remover-titulo">Confirmar</h3>
@@ -157,11 +238,77 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONEXÃO COM O SUPABASE ──
 const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ── AUTENTICAÇÃO SEGURA VIA SUPABASE AUTH ──
+async function fazerLogin() {
+  const email = document.getElementById('login-username').value.trim();
+  const senha = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+
+  if (!email || !senha) { mostrarErroLogin('Preencha e-mail e senha.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  document.getElementById('login-error').style.display = 'none';
+
+  // Faz a checagem segura no servidor do Supabase
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email,
+    password: senha
+  });
+
+  if (error) {
+    mostrarErroLogin('E-mail ou senha incorretos.');
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  } else {
+    mostrarApp();
+  }
+}
+
+function mostrarErroLogin(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function fazerLogout() {
+  await sb.auth.signOut();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-username').value = '';
+}
+
+function mostrarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  carregarAdmin();
+}
+
+// Verifica se o usuário já possui sessão ativa no navegador ao carregar a página
+async function verificarSessaoAtiva() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    mostrarApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+}
+
+// Inicializa a checagem automática
+verificarSessaoAtiva();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') fazerLogin();
+});
+
+// ── GESTÃO DO ADMIN ──
 let funcionarios = [
   'Alana Suellen','Alan Lima','Alessandro Macedo','Alessandro Martins','Alisson Rodrigues',
   'Ana Lidia','Ana Lísia Sá','Aquino Dutra','Bruno Oliveira','Cesar Farias',
@@ -175,9 +322,7 @@ let funcionarios = [
   'Tiago Douglas','Tiago Virgilio','Walney Albuquerque','Yara Araujo'
 ];
 
-let remocaoPendente = null; 
-
-carregarAdmin();
+let remocaoPendente = null;
 
 async function carregarAdmin() {
   await carregarFuncionariosDB();
