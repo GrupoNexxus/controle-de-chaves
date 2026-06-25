@@ -165,14 +165,15 @@
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-icon">⚙</div>
     <h1>Área Administrativa</h1>
     <p>Acesso restrito. Entre com suas credenciais de admin.</p>
     <div class="field">
-      <label>E-mail</label>
-      <input type="email" id="login-username" placeholder="ex: usuário@seu-dominio.com" autocomplete="email" />
+      <label>Usuário</label>
+      <input type="text" id="login-username" placeholder="ex: thaina.melo" autocomplete="username" />
     </div>
     <div class="field">
       <label>Senha</label>
@@ -183,6 +184,7 @@
   </div>
 </div>
 
+<!-- APP -->
 <div id="app-screen">
 <div class="topbar">
   <div class="topbar-left">
@@ -213,16 +215,7 @@
   </div>
 </div>
 
-</div><div class="modal-overlay" id="modal-remover">
-  <div class="modal">
-    <h3 id="modal-remover-titulo">Confirmar</h3>
-    <p id="modal-remover-desc"></p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="fecharModal('modal-remover')">Cancelar</button>
-      <button class="btn btn-danger" id="btn-confirmar-remover" onclick="confirmarRemocao()">Confirmar</button>
-    </div>
-  </div>
-</div>
+</div><!-- fim app-screen -->
 
 <div class="modal-overlay" id="modal-remover">
   <div class="modal">
@@ -238,36 +231,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONEXÃO COM O SUPABASE ──
-const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── CREDENCIAIS MASTER ──
+const ADMIN_USER = 'rh.nexxus';
+const ADMIN_PASS = '@gruponexxus202X';
 
-// ── AUTENTICAÇÃO SEGURA VIA SUPABASE AUTH ──
-async function fazerLogin() {
-  const email = document.getElementById('login-username').value.trim();
+function fazerLogin() {
+  const username = document.getElementById('login-username').value.trim();
   const senha = document.getElementById('login-password').value;
   const btn = document.getElementById('login-btn');
 
-  if (!email || !senha) { mostrarErroLogin('Preencha e-mail e senha.'); return; }
+  if (!username || !senha) { mostrarErroLogin('Preencha usuário e senha.'); return; }
 
   btn.disabled = true;
   btn.textContent = 'Entrando...';
   document.getElementById('login-error').style.display = 'none';
 
-  // Faz a checagem segura no servidor do Supabase
-  const { data, error } = await sb.auth.signInWithPassword({
-    email: email,
-    password: senha
-  });
-
-  if (error) {
-    mostrarErroLogin('E-mail ou senha incorretos.');
+  if (username === ADMIN_USER && senha === ADMIN_PASS) {
+    sessionStorage.setItem('admin_auth', 'ok');
+    mostrarApp();
+  } else {
+    mostrarErroLogin('Usuário ou senha incorretos.');
     btn.disabled = false;
     btn.textContent = 'Entrar';
-  } else {
-    mostrarApp();
   }
 }
 
@@ -276,8 +261,8 @@ function mostrarErroLogin(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
-async function fazerLogout() {
-  await sb.auth.signOut();
+function fazerLogout() {
+  sessionStorage.removeItem('admin_auth');
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-password').value = '';
@@ -290,25 +275,21 @@ function mostrarApp() {
   carregarAdmin();
 }
 
-// Verifica se o usuário já possui sessão ativa no navegador ao carregar a página
-async function verificarSessaoAtiva() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    mostrarApp();
-  } else {
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
-  }
+// Verifica sessão ativa ao carregar
+if (sessionStorage.getItem('admin_auth') === 'ok') {
+  mostrarApp();
 }
-
-// Inicializa a checagem automática
-verificarSessaoAtiva();
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') fazerLogin();
 });
 
-// ── GESTÃO DO ADMIN ──
+// ── ADMIN ──
+const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let funcionarios = [
   'Alana Suellen','Alan Lima','Alessandro Macedo','Alessandro Martins','Alisson Rodrigues',
   'Ana Lidia','Ana Lísia Sá','Aquino Dutra','Bruno Oliveira','Cesar Farias',
