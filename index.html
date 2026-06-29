@@ -163,6 +163,26 @@
   .toast.success { background: var(--success); }
   .toast.error { background: var(--danger); }
 
+  /* ── BARRA DE USUÁRIO ── */
+  .user-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .user-bar strong {
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .user-bar strong:hover { opacity: 0.8; }
+
   @media (max-width: 600px) {
     .table-header, .table-row { grid-template-columns: 2fr 2fr 1fr; }
     .table-header div:nth-child(3), .table-row div:nth-child(3),
@@ -179,6 +199,12 @@
     <div class="topbar-icon">🔑</div>
     <h1>Gestão de Chaves</h1>
   </div>
+</div>
+
+<div class="user-bar" id="user-bar" style="display:none;">
+  Você está como: <strong id="user-bar-nome" onclick="alterarUsuario()"></strong>
+  <span style="color:var(--text-muted);">·</span>
+  <span style="color:var(--text-muted); font-size:12px; cursor:pointer;" onclick="alterarUsuario()">(alterar)</span>
 </div>
 
 <div class="tabs">
@@ -213,7 +239,7 @@
     <p id="modal-retirada-desc"></p>
     <div class="field">
       <label>Quem está retirando?</label>
-      <select id="select-funcionario"><option value="">Selecione seu nome...</option></select>
+      <div id="modal-nome-usuario" style="padding: 10px 12px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: var(--radius); font-size: 14px; font-weight: 500; color: var(--accent);"></div>
     </div>
     <div class="field">
       <label>Observação (opcional)</label>
@@ -233,6 +259,21 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="fecharModal('modal-devolucao')">Cancelar</button>
       <button class="btn" style="background-color: var(--danger); color: white; border: none;" onclick="confirmarDevolucao()">Confirmar devolução</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SELEÇÃO DE USUÁRIO -->
+<div class="modal-overlay" id="modal-selecao-usuario">
+  <div class="modal">
+    <h3>👋 Quem é você?</h3>
+    <p>Selecione seu nome para registrar retiradas e devoluções.</p>
+    <div class="field">
+      <label>Seu nome</label>
+      <select id="select-usuario-inicial"><option value="">Selecione seu nome...</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="width:auto;" onclick="confirmarSelecaoUsuario()">Confirmar</button>
     </div>
   </div>
 </div>
@@ -261,6 +302,7 @@ let funcionarios = [
 let chavesSelecionada = null;
 let registroSelecionado = null;
 let todosRegistros = [];
+let usuarioSelecionado = localStorage.getItem('chaves_usuario') || null;
 
 carregarFuncionariosDB();
 carregarPainel();
@@ -268,11 +310,26 @@ carregarPainel();
 async function carregarFuncionariosDB() {
   const { data } = await sb.from('funcionarios').select('nome').order('nome');
   if (data && data.length > 0) { funcionarios = data.map(f => f.nome); }
-  preencherSelectFuncionario();
+  verificarUsuario();
 }
 
-function preencherSelectFuncionario() {
-  const sel = document.getElementById('select-funcionario');
+function verificarUsuario() {
+  if (usuarioSelecionado && funcionarios.includes(usuarioSelecionado)) {
+    atualizarBarraUsuario();
+  } else {
+    pedirSelecaoUsuario();
+  }
+}
+
+function atualizarBarraUsuario() {
+  document.getElementById('user-bar').style.display = 'flex';
+  document.getElementById('user-bar-nome').textContent = usuarioSelecionado;
+}
+
+function pedirSelecaoUsuario() {
+  // Monta modal de seleção de usuário
+  document.getElementById('modal-selecao-usuario').style.display = 'flex';
+  const sel = document.getElementById('select-usuario-inicial');
   sel.innerHTML = '<option value="">Selecione seu nome...</option>';
   funcionarios.forEach(nome => {
     const opt = document.createElement('option');
@@ -280,6 +337,29 @@ function preencherSelectFuncionario() {
     sel.appendChild(opt);
   });
 }
+
+function confirmarSelecaoUsuario() {
+  const nome = document.getElementById('select-usuario-inicial').value;
+  if (!nome) { mostrarToast('Selecione seu nome para continuar.', 'error'); return; }
+  usuarioSelecionado = nome;
+  localStorage.setItem('chaves_usuario', nome);
+  fecharModal('modal-selecao-usuario');
+  atualizarBarraUsuario();
+}
+
+function alterarUsuario() {
+  document.getElementById('modal-selecao-usuario').style.display = 'flex';
+  const sel = document.getElementById('select-usuario-inicial');
+  sel.innerHTML = '<option value="">Selecione seu nome...</option>';
+  funcionarios.forEach(nome => {
+    const opt = document.createElement('option');
+    opt.value = nome; opt.textContent = nome;
+    if (nome === usuarioSelecionado) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function preencherSelectFuncionario() {} // mantido por compatibilidade
 
 function mostrarAba(aba, btn) {
   ['painel','historico'].forEach(a => document.getElementById('aba-' + a).style.display = a === aba ? 'block' : 'none');
@@ -292,7 +372,7 @@ async function carregarPainel() {
   const container = document.getElementById('keys-container');
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando chaves...</div>';
 
-  const { data: chaves } = await sb.from('chaves').select('*').eq('ativa', true).order('nome');
+  const { data: chaves } = await sb.from('chaves').select('*').eq('ativa', true).order('ordem').order('nome');
   const { data: registros } = await sb.from('registros_chaves').select('*').is('devolvido_em', null);
 
   if (!chaves || chaves.length === 0) {
@@ -341,15 +421,16 @@ function renderCard(chave, reg, status) {
 }
 
 function abrirRetirada(chaveId, chaveNome) {
+  if (!usuarioSelecionado) { pedirSelecaoUsuario(); return; }
   chavesSelecionada = chaveId;
-  document.getElementById('modal-retirada-desc').textContent = `Você está retirando a chave "${chaveNome}". Selecione seu nome abaixo.`;
-  document.getElementById('select-funcionario').value = '';
+  document.getElementById('modal-retirada-desc').textContent = `Confirma a retirada da chave "${chaveNome}"?`;
+  document.getElementById('modal-nome-usuario').textContent = usuarioSelecionado;
   document.getElementById('obs-retirada').value = '';
   document.getElementById('modal-retirada').style.display = 'flex';
 }
 
 async function confirmarRetirada() {
-  const nome = document.getElementById('select-funcionario').value;
+  const nome = usuarioSelecionado;
   if (!nome) { mostrarToast('Selecione seu nome.', 'error'); return; }
   const btn = document.getElementById('btn-confirmar-retirada');
   btn.disabled = true; btn.textContent = 'Registrando...';
