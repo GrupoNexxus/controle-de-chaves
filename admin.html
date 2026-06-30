@@ -146,10 +146,13 @@
   /* ── LOGIN ── */
   #login-screen {
     min-height: 100vh;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    position: fixed;
+    inset: 0;
   }
   .login-card {
     background: var(--surface);
@@ -203,7 +206,7 @@
     <p>Acesso restrito. Entre com suas credenciais de admin.</p>
     <div class="field">
       <label>Usuário</label>
-      <input type="text" id="login-username" placeholder="ex: usuário" autocomplete="username" />
+      <input type="text" id="login-username" placeholder="ex: usúario" autocomplete="username" />
     </div>
     <div class="field">
       <label>Senha</label>
@@ -259,10 +262,33 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── SUPABASE (precisa vir ANTES de qualquer função que o use) ──
+const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── CREDENCIAIS MASTER ──
 const ADMIN_USER = 'rh.nexxus';
 const ADMIN_PASS = '@gruponexxus202X';
 
+let funcionarios = [
+  'Alana Suellen','Alan Lima','Alessandro Macedo','Alessandro Martins','Alisson Rodrigues',
+  'Ana Lidia','Ana Lísia Sá','Aquino Dutra','Bruno Oliveira','Cesar Farias',
+  'Cibele Feijão','Clara Sousa','Dara Souza','Edler Nunes','Eduardo Paiva',
+  'Eduardo Sousa','Elisama Frota','Emanoel Araujo','Felipe Maximo','Felipe Rodrigues',
+  'Fernandes De Sousa','Firmino Ferreira','Gisele Dourado','Izabelly Alves','Jaiane Alves',
+  'Jaqueline Vitoria','Jorge Ruan','Josdan Sales','Julia Costa','Kaila Carneiro',
+  'Karina Alves','Karyne Brandao','Lara Morgana','Letícia Mendes','Licia Rodrigues',
+  'Lucas Silva','Luzia Santos','Manoelito Neto','Pablo Rocha','Rafael Mathias',
+  'Rayane Duarte','Rosa Hardy','Sindel Vitoria','Teo Neto','Thaina Melo',
+  'Tiago Douglas','Tiago Virgilio','Walney Albuquerque','Yara Araujo'
+];
+
+let remocaoPendente = null;
+let dragEl = null;
+
+// ── LOGIN / LOGOUT ──
 function fazerLogin() {
   const username = document.getElementById('login-username').value.trim();
   const senha = document.getElementById('login-password').value;
@@ -303,36 +329,12 @@ function mostrarApp() {
   carregarAdmin();
 }
 
-// Verifica sessão ativa ao carregar
-if (sessionStorage.getItem('admin_auth') === 'ok') {
-  mostrarApp();
-}
-
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') fazerLogin();
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
 });
 
 // ── ADMIN ──
-const SUPABASE_URL = 'https://akyunucptnanqlmqslfd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreXVudWNwdG5hbnFsbXFzbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Njg1OTQsImV4cCI6MjA5NzI0NDU5NH0.ktD8GNwBlKkKMAgmJs015Oe1_OQzLHY0BFTCgCUvt2k';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let funcionarios = [
-  'Alana Suellen','Alan Lima','Alessandro Macedo','Alessandro Martins','Alisson Rodrigues',
-  'Ana Lidia','Ana Lísia Sá','Aquino Dutra','Bruno Oliveira','Cesar Farias',
-  'Cibele Feijão','Clara Sousa','Dara Souza','Edler Nunes','Eduardo Paiva',
-  'Eduardo Sousa','Elisama Frota','Emanoel Araujo','Felipe Maximo','Felipe Rodrigues',
-  'Fernandes De Sousa','Firmino Ferreira','Gisele Dourado','Izabelly Alves','Jaiane Alves',
-  'Jaqueline Vitoria','Jorge Ruan','Josdan Sales','Julia Costa','Kaila Carneiro',
-  'Karina Alves','Karyne Brandao','Lara Morgana','Letícia Mendes','Licia Rodrigues',
-  'Lucas Silva','Luzia Santos','Manoelito Neto','Pablo Rocha','Rafael Mathias',
-  'Rayane Duarte','Rosa Hardy','Sindel Vitoria','Teo Neto','Thaina Melo',
-  'Tiago Douglas','Tiago Virgilio','Walney Albuquerque','Yara Araujo'
-];
-
-let remocaoPendente = null;
-
 async function carregarAdmin() {
   await carregarFuncionariosDB();
   await carregarAdminChaves();
@@ -363,8 +365,6 @@ async function carregarAdminChaves() {
 
   iniciarDragDrop();
 }
-
-let dragEl = null;
 
 function iniciarDragDrop() {
   const lista = document.getElementById('admin-chaves-lista');
@@ -469,28 +469,43 @@ async function confirmarRemocao() {
   const { tipo, id, nome } = remocaoPendente;
 
   if (tipo === 'chave') {
-    const { data: emUso } = await sb.from('registros_chaves').select('id').eq('chave_id', id).is('devolvido_em', null);
-    if (emUso && emUso.length > 0) {
-      mostrarToast('Essa chave está retirada no momento. Aguarde a devolução para excluir.', 'error');
-      return;
+    try {
+      const { data: emUso } = await sb.from('registros_chaves').select('id').eq('chave_id', id).is('devolvido_em', null);
+      if (emUso && emUso.length > 0) {
+        mostrarToast('Essa chave está retirada no momento. Aguarde a devolução para excluir.', 'error');
+        remocaoPendente = null;
+        return;
+      }
+      const { error } = await sb.from('chaves').delete().eq('id', id);
+      if (error) {
+        mostrarToast('Erro ao excluir chave. Veja o console.', 'error');
+        console.error(error);
+        remocaoPendente = null;
+        return;
+      }
+      mostrarToast('Chave excluída.', 'success');
+      await carregarAdminChaves();
+    } catch (err) {
+      mostrarToast('Erro inesperado ao excluir chave.', 'error');
+      console.error(err);
     }
-    const { error } = await sb.from('chaves').delete().eq('id', id);
-    if (error) { mostrarToast('Erro ao excluir chave.', 'error'); console.error(error); return; }
-    mostrarToast('Chave excluída.', 'success');
-    carregarAdminChaves();
   } else {
-    const { error } = await sb.from('funcionarios').delete().eq('nome', nome);
-    if (error) { mostrarToast('Erro ao remover funcionário.', 'error'); return; }
-    funcionarios = funcionarios.filter(f => f !== nome);
-    mostrarToast('Funcionário removido.', 'success');
-    carregarAdminFuncionarios();
+    try {
+      const { error } = await sb.from('funcionarios').delete().eq('nome', nome);
+      if (error) { mostrarToast('Erro ao remover funcionário.', 'error'); console.error(error); remocaoPendente = null; return; }
+      funcionarios = funcionarios.filter(f => f !== nome);
+      mostrarToast('Funcionário removido.', 'success');
+      carregarAdminFuncionarios();
+    } catch (err) {
+      mostrarToast('Erro inesperado ao remover funcionário.', 'error');
+      console.error(err);
+    }
   }
   remocaoPendente = null;
 }
 
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; }));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); });
 
 function mostrarToast(msg, tipo = '') {
   const t = document.getElementById('toast');
@@ -498,6 +513,11 @@ function mostrarToast(msg, tipo = '') {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 function escapar(str) { return (str||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ── Verifica sessão ativa ao carregar (precisa vir DEPOIS de tudo estar declarado) ──
+if (sessionStorage.getItem('admin_auth') === 'ok') {
+  mostrarApp();
+}
 </script>
 </body>
 </html>
