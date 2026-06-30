@@ -17,6 +17,7 @@
     --text-soft: #6B6860;
     --text-muted: #A09E97;
     --accent: #2563EB;
+    --accent-light: #EFF4FF;
     --danger: #DC2626;
     --danger-light: #FEF2F2;
     --success: #16A34A;
@@ -112,6 +113,36 @@
   .toast.success { background: var(--success); }
   .toast.error { background: var(--danger); }
 
+  /* ── DRAG AND DROP ── */
+  .chaves-sortable { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+  .sortable-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow); cursor: default;
+    transition: box-shadow 0.15s, opacity 0.15s;
+  }
+  .sortable-item.dragging { opacity: 0.4; box-shadow: var(--shadow-md); }
+  .sortable-item.drag-over { border: 2px dashed var(--accent); background: var(--accent-light, #EFF4FF); }
+  .drag-handle {
+    cursor: grab; color: var(--text-muted); font-size: 16px;
+    flex-shrink: 0; user-select: none; padding: 2px 4px;
+    border-radius: 4px; transition: color 0.15s;
+  }
+  .drag-handle:hover { color: var(--text-soft); }
+  .drag-handle:active { cursor: grabbing; }
+  .sortable-item .item-info { flex: 1; min-width: 0; }
+  .sortable-item .item-info span { font-size: 13px; font-weight: 500; display: block; }
+  .sortable-item .item-info small { font-size: 11px; color: var(--text-muted); }
+  .sortable-item .tag-inativo {
+    font-size: 11px; color: var(--text-muted); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 99px; padding: 2px 8px; flex-shrink: 0;
+  }
+  .ordem-hint {
+    font-size: 12px; color: var(--text-muted); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
   /* ── LOGIN ── */
   #login-screen {
     min-height: 100vh;
@@ -165,7 +196,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-icon">⚙</div>
@@ -173,7 +203,7 @@
     <p>Acesso restrito. Entre com suas credenciais de admin.</p>
     <div class="field">
       <label>Usuário</label>
-      <input type="text" id="login-username" placeholder="ex: thaina.melo" autocomplete="username" />
+      <input type="text" id="login-username" placeholder="ex: usúario" autocomplete="username" />
     </div>
     <div class="field">
       <label>Senha</label>
@@ -184,7 +214,6 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app-screen">
 <div class="topbar">
   <div class="topbar-left">
@@ -202,7 +231,8 @@
       <input type="text" id="nova-chave-desc" class="descricao" placeholder="Descrição (opcional)">
       <button class="btn btn-success btn-sm" onclick="adicionarChave()">+ Adicionar Chave</button>
     </div>
-    <div class="admin-grid" id="admin-chaves-lista">Carregando chaves...</div>
+    <div class="ordem-hint" id="ordem-hint" style="display:none;">⠿ Arraste para reordenar · A ordem é salva automaticamente</div>
+    <div class="chaves-sortable" id="admin-chaves-lista"><p style="color:var(--text-muted);font-size:13px;">Carregando chaves...</p></div>
   </div>
 
   <div class="admin-section">
@@ -215,9 +245,7 @@
   </div>
 </div>
 
-</div><!-- fim app-screen -->
-
-<div class="modal-overlay" id="modal-remover">
+</div><div class="modal-overlay" id="modal-remover">
   <div class="modal">
     <h3 id="modal-remover-titulo">Confirmar</h3>
     <p id="modal-remover-desc"></p>
@@ -317,19 +345,71 @@ async function carregarFuncionariosDB() {
 }
 
 async function carregarAdminChaves() {
-  const { data } = await sb.from('chaves').select('*').order('nome');
+  const { data } = await sb.from('chaves').select('*').order('ordem').order('nome');
   const lista = document.getElementById('admin-chaves-lista');
   if (!data || data.length === 0) { lista.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhuma chave cadastrada.</p>'; return; }
 
+  document.getElementById('ordem-hint').style.display = 'flex';
+
   lista.innerHTML = data.map(c => `
-    <div class="admin-item">
-      <span>${c.nome}${c.descricao ? `<br><small style="color:var(--text-muted);font-weight:400;">${c.descricao}</small>` : ''}</span>
-      ${!c.ativa ? '<span class="tag-inativo">Inativa</span>' : ''}
-      ${c.ativa
-        ? `<button class="btn-icon btn-icon-danger" title="Desativar" onclick="pedirRemocao('chave','${c.id}','${escapar(c.nome)}')">✕</button>`
-        : `<button class="btn-icon btn-icon-success" title="Reativar" onclick="reativarChave('${c.id}')">↩</button>`
-      }
+    <div class="sortable-item" draggable="true" data-id="${c.id}">
+      <span class="drag-handle" title="Arrastar para reordenar">⠿</span>
+      <div class="item-info">
+        <span>${c.nome}</span>
+        ${c.descricao ? `<small>${c.descricao}</small>` : ''}
+      </div>
+      <button class="btn-icon btn-icon-danger" title="Excluir" onclick="pedirRemocao('chave','${c.id}','${escapar(c.nome)}')">✕</button>
     </div>`).join('');
+
+  iniciarDragDrop();
+}
+
+let dragEl = null;
+
+function iniciarDragDrop() {
+  const lista = document.getElementById('admin-chaves-lista');
+
+  lista.querySelectorAll('.sortable-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragEl = item;
+      setTimeout(() => item.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      lista.querySelectorAll('.sortable-item').forEach(i => i.classList.remove('drag-over'));
+      salvarOrdem();
+    });
+
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (item === dragEl) return;
+      lista.querySelectorAll('.sortable-item').forEach(i => i.classList.remove('drag-over'));
+      item.classList.add('drag-over');
+      const rect = item.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid) {
+        lista.insertBefore(dragEl, item);
+      } else {
+        lista.insertBefore(dragEl, item.nextSibling);
+      }
+    });
+
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => { e.preventDefault(); item.classList.remove('drag-over'); });
+  });
+}
+
+async function salvarOrdem() {
+  const lista = document.getElementById('admin-chaves-lista');
+  const items = lista.querySelectorAll('.sortable-item');
+  const updates = [];
+  items.forEach((item, idx) => {
+    updates.push(sb.from('chaves').update({ ordem: idx + 1 }).eq('id', item.dataset.id));
+  });
+  await Promise.all(updates);
+  mostrarToast('Ordem salva!', 'success');
 }
 
 function carregarAdminFuncionarios() {
@@ -348,18 +428,14 @@ async function adicionarChave() {
   const desc = document.getElementById('nova-chave-desc').value.trim();
   if (!nome) { mostrarToast('Digite o nome da chave.', 'error'); return; }
 
-  const { error } = await sb.from('chaves').insert({ nome, descricao: desc || null });
+  const { data: ultima } = await sb.from('chaves').select('ordem').order('ordem', { ascending: false }).limit(1);
+  const proxOrdem = ultima && ultima.length > 0 ? (ultima[0].ordem || 0) + 1 : 1;
+  const { error } = await sb.from('chaves').insert({ nome, descricao: desc || null, ordem: proxOrdem });
   if (error) { mostrarToast('Erro ao adicionar chave.', 'error'); return; }
 
   document.getElementById('nova-chave-nome').value = '';
   document.getElementById('nova-chave-desc').value = '';
   mostrarToast('Chave adicionada!', 'success');
-  carregarAdminChaves();
-}
-
-async function reativarChave(id) {
-  await sb.from('chaves').update({ ativa: true }).eq('id', id);
-  mostrarToast('Chave reativada!', 'success');
   carregarAdminChaves();
 }
 
@@ -381,9 +457,9 @@ async function adicionarFuncionario() {
 function pedirRemocao(tipo, id, nome) {
   remocaoPendente = { tipo, id, nome };
   const isChave = tipo === 'chave';
-  document.getElementById('modal-remover-titulo').textContent = isChave ? 'Desativar chave' : 'Remover funcionário';
+  document.getElementById('modal-remover-titulo').textContent = isChave ? 'Excluir chave' : 'Remover funcionário';
   document.getElementById('modal-remover-desc').textContent = isChave
-    ? `Deseja desativar a chave "${nome}"? O histórico será preservado.`
+    ? `Deseja excluir definitivamente a chave "${nome}"? Ela some do painel, mas os registros de retirada/devolução já feitos continuam no histórico.`
     : `Deseja remover "${nome}" da lista? Registros anteriores não serão afetados.`;
   document.getElementById('modal-remover').style.display = 'flex';
 }
@@ -393,8 +469,14 @@ async function confirmarRemocao() {
   const { tipo, id, nome } = remocaoPendente;
 
   if (tipo === 'chave') {
-    await sb.from('chaves').update({ ativa: false }).eq('id', id);
-    mostrarToast('Chave desativada.', 'success');
+    const { data: emUso } = await sb.from('registros_chaves').select('id').eq('chave_id', id).is('devolvido_em', null);
+    if (emUso && emUso.length > 0) {
+      mostrarToast('Essa chave está retirada no momento. Aguarde a devolução para excluir.', 'error');
+      return;
+    }
+    const { error } = await sb.from('chaves').delete().eq('id', id);
+    if (error) { mostrarToast('Erro ao excluir chave.', 'error'); console.error(error); return; }
+    mostrarToast('Chave excluída.', 'success');
     carregarAdminChaves();
   } else {
     const { error } = await sb.from('funcionarios').delete().eq('nome', nome);
